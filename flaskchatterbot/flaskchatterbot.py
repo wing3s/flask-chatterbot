@@ -1,3 +1,4 @@
+from gevent.wsgi import WSGIServer
 from chatterbot import ChatBot
 from flask import Flask, request
 
@@ -41,4 +42,5 @@ class FlaskChatBot(ChatBot):
         return 'message sent ' + text, 200
 
     def run(self):
-        self.app.run(host=self.host, port=self.port)
+        http_server = WSGIServer((self.host, self.port), self.app)
+        http_server.serve_forever()
