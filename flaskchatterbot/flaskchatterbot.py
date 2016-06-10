@@ -1,6 +1,7 @@
 from gevent.wsgi import WSGIServer
 from chatterbot import ChatBot
-from flask import Flask, request
+from chatterbot.utils.module_loading import import_module
+from flask import Flask
 
 
 class FlaskChatBot(ChatBot):
@@ -10,6 +11,10 @@ class FlaskChatBot(ChatBot):
         kwargs['output_adapter'] = (
             'chatterbot.adapters.output.OutputFormatAdapter')
         kwargs['output_format'] = 'text'
+        connector_name = kwargs.get(
+            'connector',
+            'connectors.CurlConnector'
+        )
         super(FlaskChatBot, self).__init__(name, **kwargs)
         self.host = kwargs.get(
             "host",
@@ -20,26 +25,8 @@ class FlaskChatBot(ChatBot):
             5000
         )
         self.app = Flask(__name__)
-        self.app.add_url_rule(
-            '/' + name,
-            'receive_call',
-            self.receive_call,
-            methods=['GET', 'POST']
-        )
-
-    def receive_call(self):
-        if request.method == 'POST':
-            return self.receive_message()
-        else:
-            return 'received get call', 200
-
-    def receive_message(self):
-        input_message = request.data
-        response_message = self.get_response(input_message)
-        return self.send_message(response_message)
-
-    def send_message(self, text):
-        return 'message sent ' + text, 200
+        ConnectorClass = import_module(connector_name)
+        self.connector = ConnectorClass(self)
 
     def run(self):
         http_server = WSGIServer((self.host, self.port), self.app)
