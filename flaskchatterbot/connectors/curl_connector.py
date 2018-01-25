@@ -24,3 +24,4 @@ class CurlConnector(object):
 
     def send_message(self, text):
         return text, 200
+
