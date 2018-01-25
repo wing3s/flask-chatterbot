@@ -21,4 +21,7 @@ class CurlConnector(object):
         input_message = request.data
         response_message = self.bot.get_response(input_message)
         return self.send_message(response_message)
+ 
+    def send_message(self, text):
+        return text, 200
 
